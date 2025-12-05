@@ -1,0 +1,21 @@
+{
+    "name": "DeMori Fitness Tracker",
+    "short_name": "FitTracker",
+    "description": "Habit-Tracker für Denise und Moritz - Trainings, Ernährung und Schlaf tracken",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#1a1a2e",
+    "theme_color": "#ff6b35",
+    "lang": "de-DE",
+    "categories": ["fitness", "health", "lifestyle"],
+    "icons": [],
+    "shortcuts": [
+        {
+            "name": "Heute abhaken",
+            "short_name": "Heute",
+            "description": "Öffnet die Checkliste für heute",
+            "url": "./index.html?action=today"
+        }
+    ]
+}

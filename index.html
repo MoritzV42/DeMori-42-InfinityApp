@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#ff6b35">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FitTracker">
+    <meta name="description" content="Fitness Habit Tracker für Denise und Moritz">
+
+    <!-- PWA -->
+    <link rel="manifest" href="./manifest.json">
+
+    <!-- Favicon (Emoji als Fallback) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💪</text></svg>">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <title>DeMori Fitness Tracker</title>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="screen">
+        <div class="loading-content">
+            <div class="loading-icon">💪</div>
+            <h1>DeMori Fitness</h1>
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+
+    <!-- User Selection Screen -->
+    <div id="user-selection" class="screen hidden">
+        <div class="user-selection-content">
+            <h1 class="app-title">DeMori Fitness</h1>
+            <p class="app-subtitle">Wer bist du?</p>
+            <div class="user-cards">
+                <button class="user-card" data-user="denise">
+                    <span class="user-avatar" style="background: #e91e63">D</span>
+                    <span class="user-name">Denise</span>
+                </button>
+                <button class="user-card" data-user="moritz">
+                    <span class="user-avatar" style="background: #2196F3">M</span>
+                    <span class="user-name">Moritz</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboard" class="screen hidden">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <button id="btn-switch-user" class="icon-btn" title="Nutzer wechseln">
+                <span class="header-avatar">D</span>
+            </button>
+            <h1 id="header-title">Dashboard</h1>
+            <div class="header-actions">
+                <button id="btn-badges" class="icon-btn" title="Badges">🏆</button>
+                <button id="btn-stats" class="icon-btn" title="Statistiken">📊</button>
+                <button id="btn-settings" class="icon-btn" title="Einstellungen">⚙️</button>
+            </div>
+        </header>
+
+        <!-- Streak Display -->
+        <div class="streak-section">
+            <div class="streak-card main-streak">
+                <span class="streak-icon">🔥</span>
+                <div class="streak-info">
+                    <span class="streak-count" id="main-streak-count">0</span>
+                    <span class="streak-label">Tage Streak</span>
+                </div>
+            </div>
+            <div class="streak-details">
+                <div class="mini-streak" data-streak="training">
+                    <span class="mini-streak-icon">💪</span>
+                    <span class="mini-streak-count" id="training-streak">0</span>
+                </div>
+                <div class="mini-streak" data-streak="protein">
+                    <span class="mini-streak-icon">🥩</span>
+                    <span class="mini-streak-count" id="protein-streak">0</span>
+                </div>
+                <div class="mini-streak" data-streak="sleep" id="sleep-streak-container">
+                    <span class="mini-streak-icon">😴</span>
+                    <span class="mini-streak-count" id="sleep-streak">0</span>
+                </div>
+                <div class="mini-streak" data-streak="calories" id="calories-streak-container" style="display: none;">
+                    <span class="mini-streak-icon">🔢</span>
+                    <span class="mini-streak-count" id="calories-streak">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Section -->
+        <div class="calendar-section">
+            <div class="calendar-header">
+                <button id="btn-prev-month" class="nav-btn">‹</button>
+                <h2 id="calendar-month-title">Dezember 2025</h2>
+                <button id="btn-next-month" class="nav-btn">›</button>
+            </div>
+            <div class="calendar-weekdays">
+                <span>Mo</span>
+                <span>Di</span>
+                <span>Mi</span>
+                <span>Do</span>
+                <span>Fr</span>
+                <span>Sa</span>
+                <span>So</span>
+            </div>
+            <div id="calendar-grid" class="calendar-grid">
+                <!-- Dynamisch generiert -->
+            </div>
+        </div>
+
+        <!-- Today Button -->
+        <button id="btn-today-checklist" class="primary-btn today-btn">
+            <span class="btn-icon">✓</span>
+            <span class="btn-text">Heute abhaken</span>
+        </button>
+
+        <!-- Weekly Actions -->
+        <div class="weekly-actions">
+            <button id="btn-weekly-data" class="action-btn">
+                <span class="action-icon">📏</span>
+                <span class="action-text">Körperdaten</span>
+                <span class="action-status" id="weekly-data-status"></span>
+            </button>
+            <button id="btn-weekly-photo" class="action-btn">
+                <span class="action-icon">📸</span>
+                <span class="action-text">Fortschrittsfoto</span>
+                <span class="action-status" id="weekly-photo-status"></span>
+            </button>
+            <button id="btn-workout-plan" class="action-btn">
+                <span class="action-icon">📋</span>
+                <span class="action-text">Trainingsplan</span>
+            </button>
+            <button id="btn-progress" class="action-btn">
+                <span class="action-icon">📈</span>
+                <span class="action-text">Fortschritt</span>
+            </button>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-item">
+                <span class="stat-value" id="stat-success-rate">0%</span>
+                <span class="stat-label">Erfolgsquote</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="stat-workouts-month">0</span>
+                <span class="stat-label">Trainings (Monat)</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="stat-longest-streak">0</span>
+                <span class="stat-label">Längste Streak</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Day Modal -->
+    <div id="day-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-date">1. Dezember 2025</h2>
+                <button class="modal-close" id="btn-close-modal">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- Training Info -->
+                <div class="training-info" id="training-info">
+                    <span class="training-icon">💪</span>
+                    <span class="training-text">Heute: Krafttraining</span>
+                </div>
+
+                <!-- Workout Accordion -->
+                <div class="workout-accordion" id="workout-accordion">
+                    <button class="accordion-header" id="accordion-toggle">
+                        <span class="accordion-title">📋 Trainingsplan anzeigen</span>
+                        <span class="accordion-icon">▼</span>
+                    </button>
+                    <div class="accordion-content hidden" id="accordion-content">
+                        <!-- Übungen werden dynamisch geladen -->
+                    </div>
+                </div>
+
+                <!-- Checklist -->
+                <div class="checklist" id="day-checklist">
+                    <label class="check-item">
+                        <input type="checkbox" id="check-training">
+                        <span class="checkmark"></span>
+                        <span class="check-label" id="check-training-label">Training gemäß Plan</span>
+                    </label>
+                    <label class="check-item">
+                        <input type="checkbox" id="check-protein">
+                        <span class="checkmark"></span>
+                        <span class="check-label" id="check-protein-label">Protein-Ziel erreicht (>100g)</span>
+                    </label>
+                    <label class="check-item" id="check-sleep-container">
+                        <input type="checkbox" id="check-sleep">
+                        <span class="checkmark"></span>
+                        <span class="check-label" id="check-sleep-label">Schlaf vor 23:30</span>
+                    </label>
+                    <label class="check-item" id="check-calories-container" style="display: none;">
+                        <input type="checkbox" id="check-calories">
+                        <span class="checkmark"></span>
+                        <span class="check-label" id="check-calories-label">Kalorien unter 2500 kcal</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-save-day" class="primary-btn">
+                    <span>Speichern</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Badges Modal -->
+    <div id="badges-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Deine Badges</h2>
+                <button class="modal-close" id="btn-close-badges">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="badges-grid" class="badges-grid">
+                    <!-- Dynamisch generiert -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div id="stats-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Statistiken</h2>
+                <button class="modal-close" id="btn-close-stats">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="stats-grid" id="stats-content">
+                    <!-- Dynamisch generiert -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Einstellungen</h2>
+                <button class="modal-close" id="btn-close-settings">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- Notifications -->
+                <div class="settings-section">
+                    <h3>Benachrichtigungen</h3>
+                    <label class="settings-toggle">
+                        <span>Push-Benachrichtigungen</span>
+                        <input type="checkbox" id="setting-notifications">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <div class="settings-row" id="notification-times">
+                        <label>
+                            <span>Morgen-Erinnerung</span>
+                            <input type="time" id="setting-morning-time" value="09:00">
+                        </label>
+                        <label>
+                            <span>Abend-Erinnerung</span>
+                            <input type="time" id="setting-evening-time" value="21:00">
+                        </label>
+                    </div>
+
+                    <!-- Training Reminder -->
+                    <div class="settings-subsection">
+                        <label class="settings-toggle">
+                            <span>Training-Erinnerung</span>
+                            <input type="checkbox" id="setting-training-reminder">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <div id="training-reminder-options" class="reminder-options">
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="reminder-mode" value="fixed" id="reminder-mode-fixed">
+                                    <span>Feste Zeit</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="reminder-mode" value="before" id="reminder-mode-before">
+                                    <span>X Min vorher</span>
+                                </label>
+                            </div>
+                            <div class="settings-row">
+                                <label id="reminder-fixed-container">
+                                    <span>Zeit</span>
+                                    <input type="time" id="setting-training-time" value="17:00">
+                                </label>
+                                <label id="reminder-before-container">
+                                    <span>Minuten vorher</span>
+                                    <input type="number" id="setting-training-minutes" value="60" min="5" max="180">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Custom Reminders -->
+                    <div class="settings-subsection">
+                        <div class="subsection-header">
+                            <span>Eigene Erinnerungen</span>
+                            <button id="btn-add-reminder" class="small-btn">+ Hinzufügen</button>
+                        </div>
+                        <div id="custom-reminders-list" class="reminders-list">
+                            <!-- Dynamisch generiert -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Goals -->
+                <div class="settings-section">
+                    <h3>Deine Ziele</h3>
+                    <label class="settings-input">
+                        <span>Protein-Ziel (g/Tag)</span>
+                        <input type="number" id="setting-protein" min="50" max="300">
+                    </label>
+                    <label class="settings-input" id="setting-sleep-container">
+                        <span>Schlaf vor (Uhrzeit)</span>
+                        <input type="time" id="setting-sleep-before">
+                    </label>
+                    <label class="settings-input" id="setting-sleep-hours-container">
+                        <span>Mindest-Schlafstunden</span>
+                        <input type="number" id="setting-sleep-hours" min="4" max="12" step="0.5">
+                    </label>
+                    <label class="settings-input" id="setting-calories-container">
+                        <span>Kalorien-Maximum</span>
+                        <input type="number" id="setting-calories" min="1000" max="5000">
+                    </label>
+                    <label class="settings-input" id="setting-calories-target-container">
+                        <span>Kalorien-Ziel (Aufbau)</span>
+                        <input type="number" id="setting-calories-target" min="1000" max="5000">
+                    </label>
+                    <label class="settings-input">
+                        <span>Trainings pro Woche</span>
+                        <input type="number" id="setting-weekly-workouts" min="1" max="7">
+                    </label>
+                </div>
+
+                <!-- Profil -->
+                <div class="settings-section">
+                    <h3>Dein Profil</h3>
+                    <div class="settings-row">
+                        <label class="settings-input">
+                            <span>Alter</span>
+                            <input type="number" id="setting-age" min="10" max="100">
+                        </label>
+                        <label class="settings-input">
+                            <span>Größe (cm)</span>
+                            <input type="number" id="setting-height" min="100" max="250">
+                        </label>
+                    </div>
+                    <label class="settings-input">
+                        <span>Körpertyp</span>
+                        <select id="setting-bodytype">
+                            <option value="ektomorph">Ektomorph (schlank)</option>
+                            <option value="mesomorph">Mesomorph (athletisch)</option>
+                            <option value="endomorph">Endomorph (kräftig)</option>
+                        </select>
+                    </label>
+                    <label class="settings-input">
+                        <span>Besonderheiten (kommasepariert)</span>
+                        <input type="text" id="setting-conditions" placeholder="z.B. Asthma, Laktoseintoleranz">
+                    </label>
+                    <label class="settings-input">
+                        <span>Sport-Historie (kommasepariert)</span>
+                        <input type="text" id="setting-sporthistory" placeholder="z.B. 5 Jahre Judo, Schwimmen">
+                    </label>
+                    <label class="settings-input">
+                        <span>Gewicht aktuell (kg)</span>
+                        <input type="number" id="setting-current-weight" min="30" max="200" step="0.1" readonly>
+                    </label>
+                </div>
+
+                <!-- Schedule -->
+                <div class="settings-section">
+                    <h3>Trainingsplan</h3>
+                    <div id="schedule-editor" class="schedule-editor">
+                        <!-- Dynamisch generiert -->
+                    </div>
+                </div>
+
+                <!-- Trainingstypen -->
+                <div class="settings-section">
+                    <h3>Trainingstypen</h3>
+                    <div id="training-types-list" class="training-types-list">
+                        <!-- Dynamisch generiert -->
+                    </div>
+                    <button id="btn-add-training-type" class="secondary-btn" style="margin-top: 8px;">+ Neuen Typ hinzufügen</button>
+                </div>
+
+                <!-- Google Kalender -->
+                <div class="settings-section">
+                    <h3>Google Kalender</h3>
+                    <div id="google-calendar-status" class="google-status">
+                        <span class="status-text">Nicht verbunden</span>
+                    </div>
+                    <button id="btn-connect-google" class="secondary-btn">Mit Google verbinden</button>
+                    <div id="google-calendar-options" class="google-options hidden">
+                        <label class="settings-input">
+                            <span>Trainingszeit (für Kalender)</span>
+                            <input type="time" id="setting-calendar-time" value="17:00">
+                        </label>
+                        <button id="btn-sync-calendar" class="secondary-btn">Jetzt synchronisieren</button>
+                        <button id="btn-disconnect-google" class="danger-btn">Verbindung trennen</button>
+                    </div>
+                </div>
+
+                <!-- Data -->
+                <div class="settings-section">
+                    <h3>Daten</h3>
+                    <div class="settings-buttons">
+                        <button id="btn-export-data" class="secondary-btn">Daten exportieren</button>
+                        <button id="btn-import-data" class="secondary-btn">Daten importieren</button>
+                        <button id="btn-reset-data" class="danger-btn">Alle Daten löschen</button>
+                    </div>
+                    <input type="file" id="import-file" accept=".json" style="display: none;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">
+        <span id="toast-message"></span>
+    </div>
+
+    <!-- Motivational Quote Modal -->
+    <div id="quote-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-quote">
+            <div class="quote-icon">🎉</div>
+            <p id="quote-text" class="quote-text"></p>
+            <button id="btn-close-quote" class="primary-btn">Weiter so!</button>
+        </div>
+    </div>
+
+    <!-- Badge Earned Modal -->
+    <div id="badge-earned-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-badge">
+            <div class="badge-earned-content">
+                <div class="confetti"></div>
+                <h2>Neues Badge!</h2>
+                <div id="earned-badge-icon" class="earned-badge-icon">🏅</div>
+                <h3 id="earned-badge-name">Woche geschafft</h3>
+                <p id="earned-badge-description">7 Tage Streak erreicht</p>
+                <button id="btn-close-badge-earned" class="primary-btn">Super!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Data Modal (Körperdaten) -->
+    <div id="weekly-data-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Wöchentliche Körperdaten</h2>
+                <button class="modal-close" id="btn-close-weekly-data">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-info">Trage deine aktuellen Körperdaten ein (1x pro Woche)</p>
+                <label class="settings-input">
+                    <span>Gewicht (kg)</span>
+                    <input type="number" id="input-weight" step="0.1" min="30" max="200" placeholder="z.B. 71.5">
+                </label>
+                <label class="settings-input">
+                    <span>Körperfettanteil (%)</span>
+                    <input type="number" id="input-bodyfat" step="0.1" min="5" max="50" placeholder="z.B. 15.0">
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-save-weekly-data" class="primary-btn">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Photo Modal (Fortschrittsfoto) -->
+    <div id="weekly-photo-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Wöchentliches Fortschrittsfoto</h2>
+                <button class="modal-close" id="btn-close-weekly-photo">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-info">Lade dein wöchentliches Fortschrittsfoto hoch (Pflicht!)</p>
+                <div class="photo-upload-area" id="photo-upload-area">
+                    <input type="file" id="input-photo" accept="image/*" capture="environment" style="display: none;">
+                    <div class="photo-placeholder" id="photo-placeholder">
+                        <span class="photo-icon">📷</span>
+                        <span>Tippe hier um ein Foto aufzunehmen oder hochzuladen</span>
+                    </div>
+                    <img id="photo-preview" class="photo-preview hidden" alt="Vorschau">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-save-weekly-photo" class="primary-btn" disabled>Foto speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workout Plan Modal -->
+    <div id="workout-plan-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-large modal-scrollable">
+            <div class="modal-header">
+                <h2>Dein Trainingsplan</h2>
+                <button class="modal-close" id="btn-close-workout-plan">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="workout-plan-content">
+                    <!-- Dynamisch generiert -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Modal (Fortschritt/Grafiken) -->
+    <div id="progress-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-large modal-scrollable">
+            <div class="modal-header">
+                <h2>Dein Fortschritt</h2>
+                <button class="modal-close" id="btn-close-progress">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- Weight Chart -->
+                <div class="progress-section">
+                    <h3>Gewichtsverlauf</h3>
+                    <div class="chart-container" id="weight-chart-container">
+                        <canvas id="weight-chart"></canvas>
+                    </div>
+                    <div class="chart-legend" id="weight-legend"></div>
+                </div>
+
+                <!-- Body Fat Chart -->
+                <div class="progress-section">
+                    <h3>Körperfett-Verlauf</h3>
+                    <div class="chart-container" id="bodyfat-chart-container">
+                        <canvas id="bodyfat-chart"></canvas>
+                    </div>
+                    <div class="chart-legend" id="bodyfat-legend"></div>
+                </div>
+
+                <!-- Photo Gallery -->
+                <div class="progress-section">
+                    <h3>Fortschrittsfotos</h3>
+                    <div class="photo-gallery" id="photo-gallery">
+                        <!-- Dynamisch generiert -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Photo Viewer Modal -->
+    <div id="photo-viewer-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-fullscreen">
+            <button class="modal-close photo-viewer-close" id="btn-close-photo-viewer">×</button>
+            <img id="photo-viewer-image" class="photo-viewer-image" alt="Fortschrittsfoto">
+            <div class="photo-viewer-info">
+                <span id="photo-viewer-date"></span>
+            </div>
+            <div class="photo-viewer-nav">
+                <button id="btn-photo-prev" class="photo-nav-btn">‹</button>
+                <button id="btn-photo-next" class="photo-nav-btn">›</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Training Type Editor Modal -->
+    <div id="training-type-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="type-modal-title">Trainingstyp bearbeiten</h2>
+                <button class="modal-close" id="btn-close-training-type">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="type-edit-id">
+                <label class="settings-input">
+                    <span>Name</span>
+                    <input type="text" id="type-name" placeholder="z.B. HIIT Training">
+                </label>
+                <label class="settings-input">
+                    <span>Icon/Emoji</span>
+                    <div class="emoji-input-container">
+                        <input type="text" id="type-icon" maxlength="2" placeholder="💪">
+                        <div class="emoji-suggestions">
+                            <span class="emoji-option" data-emoji="💪">💪</span>
+                            <span class="emoji-option" data-emoji="🏃">🏃</span>
+                            <span class="emoji-option" data-emoji="🥊">🥊</span>
+                            <span class="emoji-option" data-emoji="🧗">🧗</span>
+                            <span class="emoji-option" data-emoji="🥋">🥋</span>
+                            <span class="emoji-option" data-emoji="🧘">🧘</span>
+                            <span class="emoji-option" data-emoji="🏋️">🏋️</span>
+                            <span class="emoji-option" data-emoji="🚴">🚴</span>
+                            <span class="emoji-option" data-emoji="🏊">🏊</span>
+                            <span class="emoji-option" data-emoji="⚽">⚽</span>
+                            <span class="emoji-option" data-emoji="🎾">🎾</span>
+                            <span class="emoji-option" data-emoji="🔥">🔥</span>
+                        </div>
+                    </div>
+                </label>
+                <label class="settings-input">
+                    <span>Farbe</span>
+                    <input type="color" id="type-color" value="#ff6b35">
+                </label>
+                <label class="settings-input">
+                    <span>Standard-Dauer</span>
+                    <input type="text" id="type-duration" placeholder="45-60 min">
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-delete-training-type" class="danger-btn" style="display: none;">Löschen</button>
+                <button id="btn-save-training-type" class="primary-btn">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Reminder Modal -->
+    <div id="custom-reminder-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Erinnerung hinzufügen</h2>
+                <button class="modal-close" id="btn-close-custom-reminder">×</button>
+            </div>
+            <div class="modal-body">
+                <label class="settings-input">
+                    <span>Titel</span>
+                    <input type="text" id="reminder-title" placeholder="z.B. Protein-Shake">
+                </label>
+                <label class="settings-input">
+                    <span>Zeit</span>
+                    <input type="time" id="reminder-time" value="12:00">
+                </label>
+                <div class="settings-input">
+                    <span>Wochentage</span>
+                    <div class="weekday-picker" id="reminder-days">
+                        <label class="weekday-option"><input type="checkbox" value="1"><span>Mo</span></label>
+                        <label class="weekday-option"><input type="checkbox" value="2"><span>Di</span></label>
+                        <label class="weekday-option"><input type="checkbox" value="3"><span>Mi</span></label>
+                        <label class="weekday-option"><input type="checkbox" value="4"><span>Do</span></label>
+                        <label class="weekday-option"><input type="checkbox" value="5"><span>Fr</span></label>
+                        <label class="weekday-option"><input type="checkbox" value="6"><span>Sa</span></label>
+                        <label class="weekday-option"><input type="checkbox" value="0"><span>So</span></label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-save-custom-reminder" class="primary-btn">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/streaks.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/google-calendar.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
